@@ -3,9 +3,9 @@
   "name": "La Nostra App",
   "icons": [
     {
-      "src": "icon.jpeg",
+      "src": "icon.png",
       "sizes": "192x192 512x512",
-      "type": "image/jpeg"
+      "type": "image/png"
     }
   ],
   "start_url": ".",
