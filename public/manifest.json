@@ -1,0 +1,15 @@
+{
+  "short_name": "Noi ❤️",
+  "name": "La Nostra App",
+  "icons": [
+    {
+      "src": "icon.png",
+      "sizes": "192x192 512x512",
+      "type": "image/png"
+    }
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#ff4d6d",
+  "background_color": "#ffffff"
+}
