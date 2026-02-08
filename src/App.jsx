@@ -87,7 +87,7 @@ const COUPONS = [
   { id: 2, title: "Veto sul Ristorante", icon: "🍕", desc: "Scegli tu dove mangiare senza lamentele." },
   { id: 3, title: "Esonero Faccende", icon: "🧹", desc: "Io lavoro, tu mi guardi dal divano." },
   { id: 4, title: "Update Prioritario", icon: "🚀", desc: "Ogni tua richiesta ha la priorità per un'ora." },
-  { id: 5, title: "Immunità da Solletici per Procrastinamento", icon: "🛡️", desc: "Protezione totale per 24 ore." },
+  { id: 5, title: "Immunità da Solletici", icon: "🛡️", desc: "Protezione totale per 24 ore." },
   { id: 6, title: "Scelta Serie TV", icon: "📺", desc: "Scegli tu e io prometto di non addormentarmi." },
 ];
 
@@ -145,11 +145,13 @@ export default function App() {
   const audioRef = useRef(null);
   const [isPlaying, setIsPlaying] = useState(false);
 
+  // Helper Tempo Italia
   const getItalyTime = () => {
     const str = new Date().toLocaleString("en-US", { timeZone: "Europe/Rome" });
     return new Date(str);
   };
 
+  // Frase del Giorno
   const dailyPhrase = useMemo(() => {
     const now = getItalyTime();
     const startOfYear = new Date(now.getFullYear(), 0, 0);
@@ -181,8 +183,23 @@ export default function App() {
       const g = now.getDate();
 
       setIsBirthday(m === DATA_COMPLEANNO.mese && g === DATA_COMPLEANNO.g);
-      setIsValentine(m === 1 && g === 14);
+      setIsValentine(true);
       setIsAnniversary(m === DATA_ANNIVERSARIO.mese && g === DATA_ANNIVERSARIO.g);
+
+      // Logica Reset Coupon (30 giorni)
+      const newData = { ...claimedData };
+      let changed = false;
+      const UN_MESE = 30 * 24 * 60 * 60 * 1000;
+      Object.keys(newData).forEach(key => {
+        if (nowTime - newData[key] > UN_MESE) {
+          delete newData[key];
+          changed = true;
+        }
+      });
+      if (changed) {
+        setClaimedData(newData);
+        localStorage.setItem('claimedData', JSON.stringify(newData));
+      }
 
       const distVal = new Date(DATA_SAN_VALENTINO).getTime() - nowTime;
       setValentineTime({
@@ -206,7 +223,7 @@ export default function App() {
       setAnniversaryDays(Math.floor((nA - nowTime) / (1000 * 60 * 60 * 24)));
     }, 1000);
     return () => clearInterval(timer);
-  }, []);
+  }, [claimedData]);
 
   const handleClaim = (id, title) => {
     if (!claimedData[id]) {
@@ -325,11 +342,29 @@ export default function App() {
             <motion.div key="c" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-4 pb-4">
               {COUPONS.map(c => {
                 const isClaimed = !!claimedData[c.id];
+                
+                // CALCOLO GIORNI RIMANENTI (Logica Aggiunta)
+                let giorniMancanti = 0;
+                if (isClaimed) {
+                  const dataRiscatto = claimedData[c.id];
+                  const oraAttuale = getItalyTime().getTime();
+                  const UN_MESE = 30 * 24 * 60 * 60 * 1000;
+                  const differenza = (dataRiscatto + UN_MESE) - oraAttuale;
+                  giorniMancanti = Math.ceil(differenza / (1000 * 60 * 60 * 24));
+                }
+
                 return (
                   <div key={c.id} className={`p-4 rounded-2xl border-2 flex items-center justify-between ${isClaimed ? 'opacity-50 bg-gray-50' : 'bg-white border-pink-100 shadow-sm'}`}>
                     <div className="flex items-center gap-4">
                       <span className="text-3xl">{c.icon}</span>
-                      <div><h3 className="font-bold text-sm text-love-red">{c.title}</h3><p className="text-[10px] text-gray-500">{isClaimed ? "Torna tra 30gg" : c.desc}</p></div>
+                      <div>
+                        <h3 className={`font-bold text-sm ${isClaimed ? 'text-gray-400' : 'text-love-red'}`}>{c.title}</h3>
+                        <p className="text-[10px] text-gray-500">
+                          {isClaimed 
+                            ? `Disponibile tra ${giorniMancanti} giorn${giorniMancanti === 1 ? 'o' : 'i'}` 
+                            : c.desc}
+                        </p>
+                      </div>
                     </div>
                     <button onClick={() => handleClaim(c.id, c.title)} className={`p-2 rounded-full ${isClaimed ? 'text-green-500' : 'bg-love-red text-white'}`}>
                       {isClaimed ? <CheckCircle2 size={24} /> : <Gift size={20} />}
