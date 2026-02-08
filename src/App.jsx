@@ -183,7 +183,7 @@ export default function App() {
       const g = now.getDate();
 
       setIsBirthday(m === DATA_COMPLEANNO.mese && g === DATA_COMPLEANNO.g);
-      setIsValentine(true);
+      setIsValentine(m === 1 && g === 14);
       setIsAnniversary(m === DATA_ANNIVERSARIO.mese && g === DATA_ANNIVERSARIO.g);
 
       // Logica Reset Coupon (30 giorni)
